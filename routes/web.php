@@ -24,10 +24,12 @@ Route::delete('remove-from-cart', [CartController::class, 'remove'])->name('cart
 // --- ROUTE NGƯỜI DÙNG (ĐĂNG NHẬP) ---
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', function () {
+        // Nếu là Admin -> Vào trang quản trị
         if(Auth::user()->role === 'admin'){
             return redirect()->route('admin.dashboard');
         }
-        return view('dashboard');
+        // Nếu là Khách hàng -> Về trang chủ
+        return redirect()->route('home'); 
     })->name('dashboard');
 
     Route::get('checkout', [ClientOrderController::class, 'index'])->name('checkout.index');
