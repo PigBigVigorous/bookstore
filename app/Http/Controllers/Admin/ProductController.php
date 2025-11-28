@@ -7,7 +7,7 @@ use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-
+use Illuminate\Support\Facades\Validator;
 class ProductController extends Controller
 {
     public function index(Request $request)
@@ -32,6 +32,7 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
+        
         // Validate dữ liệu
         $request->validate([
             'name' => 'required|string|max:255',
