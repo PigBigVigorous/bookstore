@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Thanh toán</title>
-    <!-- Đã sửa link CSS -->
+    <!-- SỬA LINK CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
@@ -42,6 +42,9 @@
                     </li>
                 </ul>
             </div>
+        </div>
+        <div class="mt-3 mb-5">
+            <a href="{{ route('cart.index') }}" class="btn btn-secondary">Quay lại giỏ hàng</a>
         </div>
     </div>
 </body>
