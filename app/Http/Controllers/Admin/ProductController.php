@@ -14,10 +14,10 @@ use Maatwebsite\Excel\Validators\ValidationException;
 
 class ProductController extends Controller
 {
-    // ... other methods ...
+    // ... các phương thức khác ...
 
     /**
-     * Import products from Excel
+     * Import sản phẩm từ Excel
      */
     public function import(Request $request)
     {
@@ -28,27 +28,27 @@ class ProductController extends Controller
         try {
             Excel::import(new ProductsImport, $request->file('file'));
             return redirect()->route('admin.products.index')
-                ->with('success', 'Products imported successfully.');
+                ->with('success', 'Nhập sản phẩm thành công.');
                 
         } catch (ValidationException $e) {
             $failures = $e->failures();
             $errorMessages = [];
             
             foreach ($failures as $failure) {
-                $errorMessages[] = "Row {$failure->row()}: {$failure->errors()[0]}";
+                $errorMessages[] = "Dòng {$failure->row()}: {$failure->errors()[0]}";
             }
             
             return redirect()->route('admin.products.index')
-                ->with('error', 'Import failed: ' . implode(', ', $errorMessages));
+                ->with('error', 'Nhập thất bại: ' . implode(', ', $errorMessages));
                 
         } catch (\Exception $e) {
             return redirect()->route('admin.products.index')
-                ->with('error', 'Import failed: ' . $e->getMessage());
+                ->with('error', 'Nhập thất bại: ' . $e->getMessage());
         }
     }
 
     /**
-     * Export products to Excel
+     * Xuất sản phẩm ra Excel
      */
     public function export()
     {
