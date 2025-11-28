@@ -4,7 +4,7 @@
         <h2>Quản lý Kho Sách</h2>
     </div>
 
-    <!-- Toolbar: Tìm kiếm & Import/Export -->
+    <!-- Toolbar: Tìm kiếm -->
     <div class="row mb-3 align-items-center">
         <div class="col-md-4">
             <!-- Form Tìm kiếm -->
@@ -16,15 +16,6 @@
         
         <div class="col-md-8 text-end">
             <!-- Nút chức năng -->
-            <a href="{{ route('admin.products.export') }}" class="btn btn-success me-2">
-                <i class="bi bi-file-earmark-excel"></i> Export Excel
-            </a>
-            
-            <!-- Button trigger modal Import -->
-            <button type="button" class="btn btn-info text-white me-2" data-bs-toggle="modal" data-bs-target="#importModal">
-                <i class="bi bi-upload"></i> Import Excel
-            </button>
-
             <a href="{{ route('admin.products.create') }}" class="btn btn-primary">
                 <i class="bi bi-plus-lg"></i> Thêm Sách
             </a>
@@ -93,33 +84,5 @@
     <!-- Phân trang -->
     <div class="mt-3">
         {{ $products->withQueryString()->links() }}
-    </div>
-
-    <!-- Modal Import -->
-    <div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form action="{{ route('admin.products.import') }}" method="POST" enctype="multipart/form-data">
-                    @csrf
-                    <div class="modal-header">
-                        <h5 class="modal-title">Nhập dữ liệu từ Excel</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="file" class="form-label">Chọn file Excel (.xlsx, .xls)</label>
-                            <input class="form-control" type="file" id="file" name="file" required>
-                        </div>
-                        <div class="alert alert-warning small">
-                            Lưu ý: File Excel cần có tiêu đề cột: <strong>name, author, price, stock</strong>.
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                        <button type="submit" class="btn btn-primary">Upload</button>
-                    </div>
-                </form>
-            </div>
-        </div>
     </div>
 @endsection

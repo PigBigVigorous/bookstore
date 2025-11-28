@@ -46,9 +46,6 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         return view('layouts.dashboard'); 
     })->name('dashboard');
     
-    // Import & Export
-    Route::get('products/export', [ProductController::class, 'export'])->name('products.export');
-    Route::post('products/import', [ProductController::class, 'import'])->name('products.import');
 
     // Resource Routes
     Route::resource('categories', CategoryController::class);
