@@ -36,7 +36,7 @@
                         <a class="nav-link" href="{{ route('admin.products.index') }}">Quản lý Sách</a>
                     </li>
                     <li class="nav-item mb-2">
-                        <a class="nav-link disabled" href="admin.">Quản lý Đơn hàng</a>
+                        <a class="nav-link" href="{{ route('admin.orders.index') }}">Quản lý Đơn hàng</a>
                     </li>
                 </ul>
             </div>
