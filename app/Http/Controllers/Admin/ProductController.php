@@ -10,31 +10,31 @@ use Illuminate\Support\Facades\Storage;
 use App\Exports\ProductsExport;
 use App\Imports\ProductsImport;
 use Maatwebsite\Excel\Facades\Excel;
-
+use Maatwebsite\Excel\Validators\ValidationException;
 class ProductController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(Request $request)
     {
-        // Lấy sách kèm thông tin danh mục, phân trang 10 cuốn
-        $products = Product::with('category')->paginate(10);
+        $query = Product::with('category')->orderBy('id', 'desc');
+
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('author', 'like', "%{$search}%");
+            });
+        }
+
+        $products = $query->paginate(10);
         return view('admin.products.index', compact('products'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         $categories = Category::all();
         return view('admin.products.create', compact('categories'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -46,7 +46,6 @@ class ProductController extends Controller
 
         $data = $request->all();
 
-        // Xử lý upload ảnh
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('products', 'public');
             $data['image'] = $path;
@@ -56,33 +55,18 @@ class ProductController extends Controller
         return redirect()->route('admin.products.index')->with('success', 'Thêm sách thành công!');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function edit(Product $product)
     {
         $categories = Category::all();
         return view('admin.products.edit', compact('product', 'categories'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Product $product, Request $request, string $id)
+    public function update(Request $request, Product $product)
     {
         $request->validate(['name' => 'required', 'price' => 'required|numeric']);
         $data = $request->all();
 
         if ($request->hasFile('image')) {
-            // Xóa ảnh cũ nếu có
             if ($product->image) {
                 Storage::disk('public')->delete($product->image);
             }
@@ -93,10 +77,7 @@ class ProductController extends Controller
         return redirect()->route('admin.products.index')->with('success', 'Cập nhật sách thành công!');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Product $product, string $id)
+    public function destroy(Product $product)
     {
         if ($product->image) {
             Storage::disk('public')->delete($product->image);
@@ -105,11 +86,13 @@ class ProductController extends Controller
         return redirect()->route('admin.products.index')->with('success', 'Đã xóa sách!');
     }
 
+    // --- EXPORT EXCEL ---
     public function export() 
     {
-        return Excel::download(new ProductsExport, 'books.xlsx');
+        return Excel::download(new ProductsExport, 'danh-sach-sach.xlsx');
     }
    
+    // --- IMPORT EXCEL ---
     public function import(Request $request) 
     {
         $request->validate([
@@ -117,11 +100,15 @@ class ProductController extends Controller
         ]);
 
         try {
+            // Chạy lệnh import
             Excel::import(new ProductsImport, $request->file('file'));
-            return redirect()->back()->with('success', 'Import dữ liệu thành công!');
+            
+            return redirect()->back()->with('success', 'Import dữ liệu thành công! Kiểm tra danh sách bên dưới.');
+        } catch ( ValidationException $e) {
+             $failures = $e->failures();
+             return redirect()->back()->with('error', 'Lỗi dữ liệu trong file Excel.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Lỗi Import: ' . $e->getMessage());
         }
     }
-
 }

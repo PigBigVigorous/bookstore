@@ -9,9 +9,6 @@ use Maatwebsite\Excel\Concerns\WithMapping;
 
 class ProductsExport implements FromCollection, WithHeadings, WithMapping
 {
-    /**
-    * @return \Illuminate\Support\Collection
-    */
     public function collection()
     {
         return Product::with('category')->get();
@@ -39,9 +36,9 @@ class ProductsExport implements FromCollection, WithHeadings, WithMapping
             $product->author,
             $product->price,
             $product->stock,
-            $product->category ? $product->category->name : '',
+            $product->category ? $product->category->name : 'Không có',
             $product->description,
-            $product->created_at,
+            $product->created_at->format('d/m/Y'),
         ];
     }
 }
