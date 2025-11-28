@@ -6,37 +6,39 @@ use App\Models\Product;
 use App\Models\Category;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Illuminate\Support\Str;
 
 class ProductsImport implements ToModel, WithHeadingRow
 {
     /**
-    * Hàm này sẽ chạy cho từng dòng trong file Excel
+    * @param array $row
+    *
+    * @return \Illuminate\Database\Eloquent\Model|null
     */
     public function model(array $row)
     {
-        // Kiểm tra dữ liệu bắt buộc (Tên, Tác giả, Giá)
-        if(!isset($row['name']) || !isset($row['price'])) {
-            return null; // Bỏ qua dòng lỗi
-        }
-
-        // Lấy danh mục đầu tiên trong DB để gán mặc định
-        // Nếu DB chưa có danh mục nào thì tạo tạm 1 cái
-        $category = Category::first();
+        // Find category by name or create a new one
+        $category = Category::where('name', $row['category'])->first();
+        
         if (!$category) {
             $category = Category::create([
-                'name' => 'Danh mục chung',
-                'description' => 'Tự động tạo khi import'
+                'name' => $row['category'],
+                'slug' => Str::slug($row['category'])
             ]);
         }
 
         return new Product([
-            'name'        => $row['name'],
-            'author'      => $row['author'] ?? 'Unknown', // Mặc định nếu thiếu
-            'description' => $row['description'] ?? null,
-            'price'       => $row['price'],
-            'stock'       => $row['stock'] ?? 10, // Mặc định tồn kho 10
-            'category_id' => $category->id, // Gán vào danh mục hợp lệ
-            'image'       => null, 
+            'name' => $row['name'],
+            'description' => $row['description'] ?? '',
+            'price' => $row['price'],
+            'stock' => $row['stock'],
+            'category_id' => $category->id,
+            'image' => $row['image'] ?? null,
         ]);
+    }
+
+    public function headingRow(): int
+    {
+        return 1;
     }
 }

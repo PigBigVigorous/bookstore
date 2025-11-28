@@ -9,6 +9,9 @@ use Maatwebsite\Excel\Concerns\WithMapping;
 
 class ProductsExport implements FromCollection, WithHeadings, WithMapping
 {
+    /**
+    * @return \Illuminate\Support\Collection
+    */
     public function collection()
     {
         return Product::with('category')->get();
@@ -18,13 +21,14 @@ class ProductsExport implements FromCollection, WithHeadings, WithMapping
     {
         return [
             'ID',
-            'Tên Sách',
-            'Tác Giả',
-            'Giá',
-            'Tồn Kho',
-            'Danh Mục',
-            'Mô Tả',
-            'Ngày Tạo'
+            'Name',
+            'Description',
+            'Price',
+            'Stock',
+            'Category',
+            'Image',
+            'Created At',
+            'Updated At'
         ];
     }
 
@@ -33,12 +37,13 @@ class ProductsExport implements FromCollection, WithHeadings, WithMapping
         return [
             $product->id,
             $product->name,
-            $product->author,
+            $product->description,
             $product->price,
             $product->stock,
-            $product->category ? $product->category->name : 'Không có',
-            $product->description,
-            $product->created_at->format('d/m/Y'),
+            $product->category->name ?? 'No Category',
+            $product->image,
+            $product->created_at,
+            $product->updated_at
         ];
     }
 }
