@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\OrderController; // Import Controller Đơn hàng
 use App\Http\Controllers\Client\HomeController;
 use App\Http\Controllers\Client\CartController;
 use App\Http\Controllers\Client\OrderController as ClientOrderController;
+use App\Http\Controllers\Admin\DashboardController;
 
 // --- ROUTE PUBLIC (KHÁCH HÀNG) ---
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -44,9 +45,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 // --- ROUTE QUẢN TRỊ (ADMIN) ---
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     
-    Route::get('/dashboard', function () { 
-        return view('layouts.dashboard'); 
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
 
     // Resource Routes
