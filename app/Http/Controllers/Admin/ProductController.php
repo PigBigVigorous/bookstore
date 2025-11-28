@@ -41,7 +41,7 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'category_id' => 'required|exists:categories,id',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048' // Validate ảnh
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048' // Validate ảnh
         ], [
             // Tùy chỉnh thông báo lỗi tiếng Việt (nếu cần)
             'name.required' => 'Vui lòng nhập tên sách',
@@ -72,6 +72,7 @@ class ProductController extends Controller
 
     public function update(Request $request, Product $product)
     {
+        // 1. Validate dữ liệu (Giống function store nhưng image là nullable)
         $request->validate([
             'name' => 'required|string|max:255',
             'author' => 'required|string|max:255',
@@ -79,23 +80,34 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'category_id' => 'required|exists:categories,id',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+            // Thêm đuôi webp vào validation
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048' 
+        ], [
+            'name.required' => 'Vui lòng nhập tên sách',
+            'price.required' => 'Vui lòng nhập giá tiền',
+            'image.max' => 'Ảnh không được lớn hơn 2MB',
+            'image.mimes' => 'Định dạng ảnh không hỗ trợ (chỉ nhận jpg, png, jpeg, gif, webp)',
         ]);
 
         $data = $request->all();
 
+        // 2. Xử lý ảnh: Nếu có upload ảnh mới thì xóa ảnh cũ và lưu ảnh mới
         if ($request->hasFile('image')) {
-            if ($product->image) {
+            // Xóa ảnh cũ nếu tồn tại
+            if ($product->image && Storage::disk('public')->exists($product->image)) {
                 Storage::disk('public')->delete($product->image);
             }
+            
+            // Lưu ảnh mới
             $imagePath = $request->file('image')->store('products', 'public');
             $data['image'] = $imagePath;
         }
 
+        // 3. Cập nhật dữ liệu vào DB
         $product->update($data);
 
         return redirect()->route('admin.products.index')
-            ->with('success', 'Product updated successfully.');
+            ->with('success', 'Cập nhật sách thành công!');
     }
 
     public function destroy(Product $product)
