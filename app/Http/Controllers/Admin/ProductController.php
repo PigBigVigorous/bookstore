@@ -26,12 +26,13 @@ class ProductController extends Controller
 
     public function create()
     {
-        $categories = Category::all();
+        $categories = Category::all(); // Lấy danh mục để chọn
         return view('admin.products.create', compact('categories'));
     }
 
     public function store(Request $request)
     {
+        // Validate dữ liệu
         $request->validate([
             'name' => 'required|string|max:255',
             'author' => 'required|string|max:255',
@@ -39,12 +40,19 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'category_id' => 'required|exists:categories,id',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048' // Validate ảnh
+        ], [
+            // Tùy chỉnh thông báo lỗi tiếng Việt (nếu cần)
+            'name.required' => 'Vui lòng nhập tên sách',
+            'category_id.required' => 'Vui lòng chọn danh mục',
+            'image.image' => 'File tải lên phải là hình ảnh',
         ]);
 
         $data = $request->all();
 
+        // Xử lý upload ảnh
         if ($request->hasFile('image')) {
+            // Lưu vào thư mục storage/app/public/products
             $imagePath = $request->file('image')->store('products', 'public');
             $data['image'] = $imagePath;
         }
@@ -52,7 +60,7 @@ class ProductController extends Controller
         Product::create($data);
 
         return redirect()->route('admin.products.index')
-            ->with('success', 'Product created successfully.');
+            ->with('success', 'Thêm sách mới thành công!');
     }
 
     public function edit(Product $product)
