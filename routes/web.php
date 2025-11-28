@@ -25,7 +25,7 @@ Route::delete('remove-from-cart', [CartController::class, 'remove'])->name('cart
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', function () {
         // Nếu là Admin -> Vào trang quản trị
-        if(Auth::user()->role === 'admin'){
+        if(Auth::user()->role === 'admin'){ 
             return redirect()->route('admin.dashboard');
         }
         // Nếu là Khách hàng -> Về trang chủ

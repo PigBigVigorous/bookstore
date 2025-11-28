@@ -41,7 +41,7 @@
                             @if(Auth::user()->role === 'admin')
                                 <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}">Trang Quản Trị</a></li>
                             @else
-                                <li><a class="dropdown-item" href="{{ route('dashboard') }}">Tài khoản của tôi</a></li>
+                                <li><a class="dropdown-item" href="{{ route('profile.edit') }}">Tài khoản của tôi</a></li>
                             @endif
                             <li><hr class="dropdown-divider"></li>
                             <li>
