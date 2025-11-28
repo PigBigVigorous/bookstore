@@ -60,4 +60,16 @@ Route::middleware(['auth'])->group(function () {
     Route::post('checkout', [OrderController::class, 'store'])->name('checkout.store');
 });
 
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', function () { return view('dashboard'); })->name('dashboard');
+    
+    // Import & Export Routes (Thêm mới)
+    Route::get('products/export', [ProductController::class, 'export'])->name('products.export');
+    Route::post('products/import', [ProductController::class, 'import'])->name('products.import');
+
+    // Resource Routes
+    Route::resource('categories', CategoryController::class);
+    Route::resource('products', ProductController::class);
+});
+
 require __DIR__.'/auth.php';

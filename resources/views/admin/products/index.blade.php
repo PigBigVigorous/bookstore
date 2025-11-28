@@ -1,48 +1,125 @@
 @extends('layouts.admin')
 @section('content')
-    <div class="d-flex justify-content-between mb-3">
-        <h2>Kho Sách</h2>
-        <a href="{{ route('admin.products.create') }}" class="btn btn-primary">Thêm Sách</a>
+    <div class="mb-4">
+        <h2>Quản lý Kho Sách</h2>
     </div>
-    <table class="table table-bordered align-middle">
-        <thead>
-            <tr>
-                <th>Hình ảnh</th>
-                <th>Tên sách</th>
-                <th>Danh mục</th>
-                <th>Giá</th>
-                <th>Tồn kho</th>
-                <th>Hành động</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($products as $product)
-            <tr>
-                <td style="width: 100px;">
-                    @if($product->image)
-                        <img src="{{ Storage::url($product->image) }}" width="80" alt="img">
-                    @else
-                        <span>No Image</span>
-                    @endif
-                </td>
-                <td>
-                    <strong>{{ $product->name }}</strong><br>
-                    <small>{{ $product->author }}</small>
-                </td>
-                <td>{{ $product->category->name ?? 'N/A' }}</td>
-                <td>{{ number_format($product->price) }} đ</td>
-                <td>{{ $product->stock }}</td>
-                <td>
-                    <a href="{{ route('admin.products.edit', $product) }}" class="btn btn-warning btn-sm">Sửa</a>
-                    <form action="{{ route('admin.products.destroy', $product) }}" method="POST" class="d-inline" onsubmit="return confirm('Xóa sách này?')">
-                        @csrf @method('DELETE')
-                        <button class="btn btn-danger btn-sm">Xóa</button>
-                    </form>
-                </td>
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
+
+    <!-- Toolbar: Tìm kiếm & Import/Export -->
+    <div class="row mb-3 align-items-center">
+        <div class="col-md-4">
+            <!-- Form Tìm kiếm -->
+            <form action="{{ route('admin.products.index') }}" method="GET" class="d-flex">
+                <input type="text" name="search" class="form-control me-2" placeholder="Tìm tên sách hoặc tác giả..." value="{{ request('search') }}">
+                <button class="btn btn-outline-secondary" type="submit">Tìm</button>
+            </form>
+        </div>
+        
+        <div class="col-md-8 text-end">
+            <!-- Nút chức năng -->
+            <a href="{{ route('admin.products.export') }}" class="btn btn-success me-2">
+                <i class="bi bi-file-earmark-excel"></i> Export Excel
+            </a>
+            
+            <!-- Button trigger modal Import -->
+            <button type="button" class="btn btn-info text-white me-2" data-bs-toggle="modal" data-bs-target="#importModal">
+                <i class="bi bi-upload"></i> Import Excel
+            </button>
+
+            <a href="{{ route('admin.products.create') }}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> Thêm Sách
+            </a>
+        </div>
+    </div>
+
+    <!-- Bảng danh sách -->
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <table class="table table-hover table-striped mb-0 align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Hình ảnh</th>
+                        <th>Tên sách</th>
+                        <th>Danh mục</th>
+                        <th>Giá</th>
+                        <th>Tồn kho</th>
+                        <th class="text-center">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($products as $product)
+                    <tr>
+                        <td style="width: 80px;">
+                            @if($product->image)
+                                <img src="{{ Storage::url($product->image) }}" class="img-thumbnail" width="60" alt="img">
+                            @else
+                                <span class="badge bg-secondary">No Image</span>
+                            @endif
+                        </td>
+                        <td>
+                            <strong>{{ $product->name }}</strong><br>
+                            <small class="text-muted">{{ $product->author }}</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-info text-dark">{{ $product->category->name ?? 'N/A' }}</span>
+                        </td>
+                        <td class="fw-bold text-danger">{{ number_format($product->price) }} đ</td>
+                        <td>
+                            @if($product->stock > 0)
+                                <span class="text-success">{{ $product->stock }}</span>
+                            @else
+                                <span class="badge bg-danger">Hết hàng</span>
+                            @endif
+                        </td>
+                        <td class="text-center">
+                            <a href="{{ route('admin.products.edit', $product) }}" class="btn btn-warning btn-sm">Sửa</a>
+                            <form action="{{ route('admin.products.destroy', $product) }}" method="POST" class="d-inline" onsubmit="return confirm('Xóa sách này?')">
+                                @csrf @method('DELETE')
+                                <button class="btn btn-danger btn-sm">Xóa</button>
+                            </form>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">
+                            Không tìm thấy sách nào.
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <!-- Phân trang -->
-    {{ $products->links() }}
+    <div class="mt-3">
+        {{ $products->withQueryString()->links() }}
+    </div>
+
+    <!-- Modal Import -->
+    <div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="{{ route('admin.products.import') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title">Nhập dữ liệu từ Excel</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="file" class="form-label">Chọn file Excel (.xlsx, .xls)</label>
+                            <input class="form-control" type="file" id="file" name="file" required>
+                        </div>
+                        <div class="alert alert-warning small">
+                            Lưu ý: File Excel cần có tiêu đề cột: <strong>name, author, price, stock</strong>.
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                        <button type="submit" class="btn btn-primary">Upload</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @endsection

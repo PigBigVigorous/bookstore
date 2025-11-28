@@ -7,6 +7,9 @@ use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Exports\ProductsExport;
+use App\Imports\ProductsImport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ProductController extends Controller
 {
@@ -101,4 +104,24 @@ class ProductController extends Controller
         $product->delete();
         return redirect()->route('admin.products.index')->with('success', 'Đã xóa sách!');
     }
+
+    public function export() 
+    {
+        return Excel::download(new ProductsExport, 'books.xlsx');
+    }
+   
+    public function import(Request $request) 
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls',
+        ]);
+
+        try {
+            Excel::import(new ProductsImport, $request->file('file'));
+            return redirect()->back()->with('success', 'Import dữ liệu thành công!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Lỗi Import: ' . $e->getMessage());
+        }
+    }
+
 }
