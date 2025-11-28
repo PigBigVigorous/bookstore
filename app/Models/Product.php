@@ -11,6 +11,7 @@ class Product extends Model
 
     protected $fillable = [
         'name',
+        'author',      // Đã thêm trường này
         'description', 
         'price',
         'stock',

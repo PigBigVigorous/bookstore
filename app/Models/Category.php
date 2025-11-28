@@ -11,7 +11,7 @@ class Category extends Model
 
     protected $fillable = [
         'name',
-        'slug'
+        'description', // Đã thêm trường này
     ];
 
     public function products()
