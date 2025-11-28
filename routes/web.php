@@ -5,16 +5,13 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\OrderController; // Import Controller Đơn hàng
 use App\Http\Controllers\Client\HomeController;
 use App\Http\Controllers\Client\CartController;
-use App\Http\Controllers\Client\OrderController;
+use App\Http\Controllers\Client\OrderController as ClientOrderController;
 
 // --- ROUTE PUBLIC (KHÁCH HÀNG) ---
-
-// Trang chủ: Hiển thị danh sách sản phẩm
 Route::get('/', [HomeController::class, 'index'])->name('home');
-
-// Chi tiết sản phẩm
 Route::get('/product/{id}', [HomeController::class, 'show'])->name('product.show');
 
 // Giỏ hàng
@@ -24,22 +21,18 @@ Route::patch('update-cart', [CartController::class, 'update'])->name('cart.updat
 Route::delete('remove-from-cart', [CartController::class, 'remove'])->name('cart.remove');
 
 
-// --- ROUTE NGƯỜI DÙNG (USER ĐÃ ĐĂNG NHẬP) ---
+// --- ROUTE NGƯỜI DÙNG (ĐĂNG NHẬP) ---
 Route::middleware(['auth', 'verified'])->group(function () {
-    // Dashboard của User
     Route::get('/dashboard', function () {
-        // Nếu là admin mà vào link này thì đẩy sang trang admin
         if(Auth::user()->role === 'admin'){
             return redirect()->route('admin.dashboard');
         }
-        return view('dashboard'); // View mặc định cho User
+        return view('dashboard');
     })->name('dashboard');
 
-    // Thanh toán
-    Route::get('checkout', [OrderController::class, 'index'])->name('checkout.index');
-    Route::post('checkout', [OrderController::class, 'store'])->name('checkout.store');
+    Route::get('checkout', [ClientOrderController::class, 'index'])->name('checkout.index');
+    Route::post('checkout', [ClientOrderController::class, 'store'])->name('checkout.store');
 
-    // Quản lý hồ sơ cá nhân
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -49,8 +42,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 // --- ROUTE QUẢN TRỊ (ADMIN) ---
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     
-    // [QUAN TRỌNG] Đã sửa: Trỏ đúng về file view dashboard của admin
-    // File view này nằm tại resources/views/layouts/dashboard.blade.php
     Route::get('/dashboard', function () { 
         return view('layouts.dashboard'); 
     })->name('dashboard');
@@ -59,9 +50,16 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('products/export', [ProductController::class, 'export'])->name('products.export');
     Route::post('products/import', [ProductController::class, 'import'])->name('products.import');
 
-    // Quản lý Danh mục & Sản phẩm
+    // Resource Routes
     Route::resource('categories', CategoryController::class);
     Route::resource('products', ProductController::class);
+
+    // --- QUẢN LÝ ĐƠN HÀNG (MỚI) ---
+    // Định nghĩa route này để khớp với route('admin.orders.index') trong View
+    Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+    Route::patch('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.update_status');
+    Route::delete('orders/{order}', [OrderController::class, 'destroy'])->name('orders.destroy');
 });
 
 require __DIR__.'/auth.php';

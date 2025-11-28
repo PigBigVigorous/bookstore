@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Bookstore</title>
-    <!-- SỬA LINK CSS: Xóa các dấu ngoặc thừa -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 </head>
@@ -47,6 +46,7 @@
                         </a>
                     </li>
 
+                    <!-- Link này khớp với route admin.orders.index trong web.php -->
                     <li class="nav-item mb-2">
                         <a class="nav-link {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}" href="{{ route('admin.orders.index') }}">
                             <i class="bi bi-cart-check me-2"></i> Đơn hàng
@@ -76,7 +76,6 @@
         </div>
     </div>
 
-    <!-- SỬA LINK JS: Xóa các dấu ngoặc thừa -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
