@@ -82,7 +82,9 @@
     </div>
 
     <!-- Phân trang -->
-    <div class="mt-3">
-        {{ $products->withQueryString()->links() }}
-    </div>
+    @if(method_exists($products, 'links'))
+        <div class="mt-3">
+            {{ $products->links() }}
+        </div>
+    @endif
 @endsection
