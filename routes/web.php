@@ -9,65 +9,57 @@ use App\Http\Controllers\Client\HomeController;
 use App\Http\Controllers\Client\CartController;
 use App\Http\Controllers\Client\OrderController;
 
-Route::get('/', function () {
-    return view('welcome');
-})->name('home');
+// --- ROUTE PUBLIC (KHÁCH HÀNG) ---
 
-// Dashboard của Admin (Phải có quyền admin)
-Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard'); // Ngày mai sẽ tạo view admin riêng
-    })->name('dashboard');
-    
-    // Mai thêm route quản lý sách ở đây
-});
-
-// Dashboard của User (Đăng nhập rồi mới vào)
-Route::get('/dashboard', function () {
-    // Logic check: Nếu là admin mà lỡ vào link này thì đẩy sang admin dashboard
-    if(Auth::user()->role === 'admin'){
-        return redirect()->route('admin.dashboard');
-    }
-    return view('dashboard'); 
-})->middleware(['auth', 'verified'])->name('dashboard');
-
-
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
-// Route trang chủ
+// Trang chủ: Hiển thị danh sách sản phẩm
 Route::get('/', [HomeController::class, 'index'])->name('home');
+
+// Chi tiết sản phẩm
 Route::get('/product/{id}', [HomeController::class, 'show'])->name('product.show');
 
-// Route Admin (Sửa lại nhóm này)
-Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', function () { return view('dashboard'); })->name('dashboard');
-    
-    // Resource Route cho Category và Product
-    Route::resource('categories', CategoryController::class);
-    Route::resource('products', ProductController::class);
-});
-
+// Giỏ hàng
 Route::get('cart', [CartController::class, 'index'])->name('cart.index');
 Route::get('add-to-cart/{id}', [CartController::class, 'addToCart'])->name('cart.add');
 Route::patch('update-cart', [CartController::class, 'update'])->name('cart.update');
 Route::delete('remove-from-cart', [CartController::class, 'remove'])->name('cart.remove');
 
-Route::middleware(['auth'])->group(function () {
+
+// --- ROUTE NGƯỜI DÙNG (USER ĐÃ ĐĂNG NHẬP) ---
+Route::middleware(['auth', 'verified'])->group(function () {
+    // Dashboard của User
+    Route::get('/dashboard', function () {
+        // Nếu là admin mà vào link này thì đẩy sang trang admin
+        if(Auth::user()->role === 'admin'){
+            return redirect()->route('admin.dashboard');
+        }
+        return view('dashboard'); // View mặc định cho User
+    })->name('dashboard');
+
+    // Thanh toán
     Route::get('checkout', [OrderController::class, 'index'])->name('checkout.index');
     Route::post('checkout', [OrderController::class, 'store'])->name('checkout.store');
+
+    // Quản lý hồ sơ cá nhân
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+
+// --- ROUTE QUẢN TRỊ (ADMIN) ---
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', function () { return view('dashboard'); })->name('dashboard');
     
-    // Import & Export Routes (Thêm mới)
+    // [QUAN TRỌNG] Đã sửa: Trỏ đúng về file view dashboard của admin
+    // File view này nằm tại resources/views/layouts/dashboard.blade.php
+    Route::get('/dashboard', function () { 
+        return view('layouts.dashboard'); 
+    })->name('dashboard');
+    
+    // Import & Export
     Route::get('products/export', [ProductController::class, 'export'])->name('products.export');
     Route::post('products/import', [ProductController::class, 'import'])->name('products.import');
 
-    // Resource Routes
+    // Quản lý Danh mục & Sản phẩm
     Route::resource('categories', CategoryController::class);
     Route::resource('products', ProductController::class);
 });
