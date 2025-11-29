@@ -8,8 +8,7 @@ use App\Models\Order;
 use App\Models\OrderDetail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\OrderPlaced; // Chúng ta sẽ tạo mail này ở bước sau
+use App\Models\Product;
 
 class OrderController extends Controller
 {
@@ -19,55 +18,71 @@ class OrderController extends Controller
         if (!Auth::check()) {
             return redirect()->route('login')->with('error', 'Vui lòng đăng nhập để thanh toán!');
         }
-        $cart = session()->get('cart');
-        if (!$cart) {
-            return redirect()->route('home');
+        $cart = session()->get('cart', []);
+        if(empty($cart)) {
+            return redirect()->route('home')->with('error', 'Giỏ hàng trống!');
         }
-        return view('client.checkout.index', compact('cart'));
+        $user = Auth::user();
+        return view('client.checkout.index', compact('cart', 'user'));
     }
 
     // Xử lý đặt hàng
     public function store(Request $request)
     {
-        $cart = session()->get('cart');
-        $user = Auth::user();
+        $request->validate([
+            'receiver_name' => 'required',
+            'receiver_phone' => 'required',
+            'receiver_address' => 'required',
+        ]);
+
+        $cart = session()->get('cart', []);
+        
+        // Tính tổng tiền
         $total = 0;
         foreach($cart as $item) {
             $total += $item['price'] * $item['quantity'];
         }
 
-        DB::beginTransaction(); // Đảm bảo dữ liệu toàn vẹn
         try {
-            // 1. Tạo đơn hàng
+            DB::beginTransaction();
+
+            // 1. Tạo đơn hàng và LIÊN KẾT VỚI USER
             $order = Order::create([
-                'user_id' => $user->id,
+                'user_id' => Auth::id(), // [QUAN TRỌNG] Lấy ID người dùng hiện tại
+                'receiver_name' => $request->receiver_name,
+                'receiver_phone' => $request->receiver_phone,
+                'receiver_address' => $request->receiver_address,
+                'note' => $request->note,
                 'total_price' => $total,
-                'status' => 'pending',
-                'payment_method' => 'cod'
+                'status' => 'pending'
             ]);
 
-            // 2. Tạo chi tiết đơn hàng
+            // 2. Lưu chi tiết đơn hàng
             foreach($cart as $id => $item) {
                 OrderDetail::create([
                     'order_id' => $order->id,
                     'product_id' => $id,
                     'quantity' => $item['quantity'],
-                    'price' => $item['price']
+                    'price' => $item['price'],
                 ]);
+                
+                // Trừ tồn kho (Optional)
+                $product = Product::find($id);
+                if($product) {
+                    $product->decrement('stock', $item['quantity']);
+                }
             }
 
-            // 3. Gửi Email (Bỏ comment sau khi làm Bước 3)
-            // Mail::to($user->email)->send(new OrderPlaced($order));
-
-            // 4. Xóa giỏ hàng
-            session()->forget('cart');
-            
             DB::commit();
-            return redirect()->route('home')->with('success', 'Đặt hàng thành công! Kiểm tra email của bạn.');
+
+            // 3. Xóa giỏ hàng sau khi mua thành công
+            session()->forget('cart');
+
+            return redirect()->route('home')->with('success', 'Đặt hàng thành công! Mã đơn: #' . $order->id);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Có lỗi xảy ra, vui lòng thử lại.');
+            return redirect()->back()->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
         }
     }
 }

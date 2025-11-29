@@ -3,10 +3,17 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Order extends Model
 {
-    protected $fillable = ['user_id', 'total_price', 'status', 'payment_method'];
+    use HasFactory;
+
+
+    protected $fillable = [
+        'user_id', 'receiver_name', 'receiver_phone', 
+        'receiver_address', 'note', 'total_price', 'status'
+    ];
 
     public function details() {
         return $this->hasMany(OrderDetail::class);
