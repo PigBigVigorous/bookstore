@@ -27,9 +27,8 @@ class CartController extends Controller
             return redirect()->back()->with('error', 'Sản phẩm không đủ số lượng!');
         }
 
-        // --- TRƯỜNG HỢP 1: MUA NGAY (Tách biệt hoàn toàn) ---
+        // --- TRƯỜNG HỢP 1: MUA NGAY ---
         if ($request->has('buy_now') && $request->buy_now == 'true') {
-            // Tạo dữ liệu giỏ hàng tạm thời chỉ chứa 1 sản phẩm này
             $buyNowItem = [
                 $id => [
                     "name" => $product->name,
@@ -38,15 +37,12 @@ class CartController extends Controller
                     "image" => $product->image
                 ]
             ];
-
-            // Lưu vào Session riêng, KHÔNG lưu vào session 'cart' chính
             session()->put('checkout_data', $buyNowItem);
-            session()->put('checkout_type', 'buy_now'); // Đánh dấu loại thanh toán
-
+            session()->put('checkout_type', 'buy_now');
             return redirect()->route('checkout.index');
         }
 
-        // --- TRƯỜNG HỢP 2: THÊM VÀO GIỎ HÀNG (Logic cũ) ---
+        // --- TRƯỜNG HỢP 2: GIỎ HÀNG ---
         $cart = session()->get('cart', []);
 
         if(isset($cart[$id])) {
@@ -62,7 +58,6 @@ class CartController extends Controller
 
         session()->put('cart', $cart);
 
-        // Lưu vào DB nếu đã đăng nhập
         if (Auth::check()) {
             $dbCart = Cart::where('user_id', Auth::id())
                           ->where('product_id', $id)
@@ -83,7 +78,45 @@ class CartController extends Controller
         return redirect()->back()->with('success', 'Đã thêm ' . $quantity . ' cuốn vào giỏ hàng!');
     }
 
-    // ... (Các hàm update, remove giữ nguyên) ...
-    public function update(Request $request) { /* ... */ }
-    public function remove(Request $request) { /* ... */ }
+    // --- CHỨC NĂNG CẬP NHẬT SỐ LƯỢNG ---
+    public function update(Request $request)
+    {
+        if($request->id && $request->quantity){
+            // 1. Cập nhật Session
+            $cart = session()->get('cart');
+            $cart[$request->id]["quantity"] = $request->quantity;
+            session()->put('cart', $cart);
+
+            // 2. Cập nhật Database (Nếu đã login)
+            if (Auth::check()) {
+                Cart::where('user_id', Auth::id())
+                    ->where('product_id', $request->id)
+                    ->update(['quantity' => $request->quantity]);
+            }
+            
+            return redirect()->back()->with('success', 'Đã cập nhật giỏ hàng!');
+        }
+    }
+
+    // --- CHỨC NĂNG XÓA SẢN PHẨM (BẠN CẦN ĐOẠN NÀY) ---
+    public function remove(Request $request)
+    {
+        if($request->id) {
+            // 1. Xóa khỏi Session
+            $cart = session()->get('cart');
+            if(isset($cart[$request->id])) {
+                unset($cart[$request->id]);
+                session()->put('cart', $cart);
+            }
+
+            // 2. Xóa khỏi Database (Nếu đã login)
+            if (Auth::check()) {
+                Cart::where('user_id', Auth::id())
+                    ->where('product_id', $request->id)
+                    ->delete();
+            }
+
+            return redirect()->back()->with('success', 'Đã xóa sách khỏi giỏ!');
+        }
+    }
 }
