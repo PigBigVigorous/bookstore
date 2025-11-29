@@ -120,7 +120,7 @@
                 </div>
 
                 <div class="mb-4">
-                    <h5 class="fw-bold border-bottom pb-2">Mô tả sản phẩm</h5>
+                    <h5 class="fw-bold border-bottom pb-2">Mô tả sách</h5>
                     <div class="text-secondary" style="white-space: pre-line;">
                         {{ $product->description ?? 'Đang cập nhật mô tả...' }}
                     </div>
