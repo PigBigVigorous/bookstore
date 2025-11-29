@@ -22,8 +22,13 @@ class CartController extends Controller
     {
         $product = Product::findOrFail($id);
         $cart = session()->get('cart', []);
-        $quantity = $request->input('quantity', 1);
-
+        
+        $quantity = (int) $request->input('quantity', 1);
+        
+        if ($quantity < 1) {
+            $quantity = 1;
+        }
+        
         if ($product->stock < $quantity) {
             return redirect()->back()->with('error', 'Số lượng sản phẩm không đủ!');
         }
@@ -33,7 +38,7 @@ class CartController extends Controller
         } else {
             $cart[$id] = [
                 "name" => $product->name,
-                "quantity" => 1,
+                "quantity" => $quantity,
                 "price" => $product->price,
                 "image" => $product->image
             ];
@@ -48,13 +53,13 @@ class CartController extends Controller
                           ->first();
             
             if ($dbCart) {
-                $dbCart->quantity = $cart[$id]['quantity'];
+                $dbCart->quantity += $quantity;
                 $dbCart->save();
             } else {
                 Cart::create([
                     'user_id' => Auth::id(),
                     'product_id' => $id,
-                    'quantity' => $cart[$id]['quantity']
+                    'quantity' => $quantity
                 ]);
             }
         }
@@ -68,7 +73,7 @@ class CartController extends Controller
                 'id' => $id,
                 'qty' => $quantity
             ]);
-            
+
             return redirect()->route('checkout.index');
         }
 
