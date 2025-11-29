@@ -71,7 +71,7 @@
                     <i class="bi bi-cart3"></i>
                     @if(session('cart'))
                         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                            {{ count((array) session('cart')) }}
+                            {{ array_sum(array_column((array) session('cart'), 'quantity')) }}
                         </span>
                     @endif
                 </a>
