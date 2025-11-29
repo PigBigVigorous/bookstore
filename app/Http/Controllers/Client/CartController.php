@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Client;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use App\Models\Cart;
+use Illuminate\Support\Facades\Auth;
 
 class CartController extends Controller
 {
@@ -34,13 +36,31 @@ class CartController extends Controller
 
         session()->put('cart', $cart);
 
+        //Nếu đã đăng nhập -> Lưu vào Database
+        if (Auth::check()) {
+            $dbCart = Cart::where('user_id', Auth::id())
+                          ->where('product_id', $id)
+                          ->first();
+            
+            if ($dbCart) {
+                $dbCart->quantity = $cart[$id]['quantity'];
+                $dbCart->save();
+            } else {
+                Cart::create([
+                    'user_id' => Auth::id(),
+                    'product_id' => $id,
+                    'quantity' => 1
+                ]);
+            }
+        }
+
         // [MỚI] Kiểm tra nếu có tham số 'buy_now' trên URL thì chuyển đến giỏ hàng
         if (request()->has('buy_now') && request()->buy_now == 'true') {
             return redirect()->route('cart.index')->with('success', 'Đã thêm vào giỏ, vui lòng kiểm tra!');
         }
 
         return redirect()->back()->with('success', 'Đã thêm sách vào giỏ!');
-    }
+    }   
 
     // Cập nhật số lượng
     public function update(Request $request)
@@ -49,6 +69,14 @@ class CartController extends Controller
             $cart = session()->get('cart');
             $cart[$request->id]["quantity"] = $request->quantity;
             session()->put('cart', $cart);
+
+            //Cập nhật DB nếu đã đăng nhập
+            if (Auth::check()) {
+                Cart::where('user_id', Auth::id())
+                    ->where('product_id', $request->id)
+                    ->update(['quantity' => $request->quantity]);
+            }
+
             return redirect()->back()->with('success', 'Đã cập nhật giỏ hàng!');
         }
     }
@@ -61,6 +89,13 @@ class CartController extends Controller
             if(isset($cart[$request->id])) {
                 unset($cart[$request->id]);
                 session()->put('cart', $cart);
+            }
+
+            //Xóa khỏi DB nếu đã đăng nhập
+            if (Auth::check()) {
+                Cart::where('user_id', Auth::id())
+                    ->where('product_id', $request->id)
+                    ->delete();
             }
             return redirect()->back()->with('success', 'Đã xóa sách khỏi giỏ!');
         }
