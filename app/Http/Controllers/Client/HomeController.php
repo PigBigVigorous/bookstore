@@ -49,7 +49,7 @@ class HomeController extends Controller
             $query->latest();
         }
 
-        $products = $query->paginate(12);
+        $products = $query->paginate(6);
         
         // Truyền thêm biến $categories sang view
         return view('welcome', compact('products', 'categories'));

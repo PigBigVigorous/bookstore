@@ -193,65 +193,68 @@
                 </div>
                 
                 <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                    @forelse($products as $product)
-                    <div class="col">
-                        <div class="card h-100 shadow-sm border-0 hover-shadow transition-all">
-                            
-                            <div class="product-img-container">
-                                @if($product->image)
-                                    <img src="{{ Storage::url($product->image) }}" class="product-thumb" alt="{{ $product->name }}">
-                                    
-                                    <div class="product-full-img-overlay">
-                                        <img src="{{ Storage::url($product->image) }}" alt="{{ $product->name }}">
-                                    </div>
-                                @else
-                                    <div class="bg-secondary text-white d-flex justify-content-center align-items-center h-100 w-100">
-                                        <i class="bi bi-image fs-1"></i>
-                                    </div>
-                                @endif
+                @forelse($products as $product)
+                <div class="col">
+                    <div class="card h-100 shadow-sm border-0 hover-shadow transition-all">
+                        
+                        <div class="product-img-container">
+                            @if($product->image)
+                                <img src="{{ Storage::url($product->image) }}" class="product-thumb" alt="{{ $product->name }}">
+                                <div class="product-full-img-overlay">
+                                    <img src="{{ Storage::url($product->image) }}" alt="{{ $product->name }}">
+                                </div>
+                            @else
+                                <div class="bg-secondary text-white d-flex justify-content-center align-items-center h-100 w-100">
+                                    <i class="bi bi-image fs-1"></i>
+                                </div>
+                            @endif
 
-                                @if($product->stock == 0)
-                                    <div class="position-absolute top-0 end-0 bg-danger text-white px-2 py-1 m-2 rounded small shadow-sm" style="z-index: 20;">Hết hàng</div>
-                                @endif
-                            </div>
+                            @if($product->stock == 0)
+                                <div class="position-absolute top-0 end-0 bg-danger text-white px-2 py-1 m-2 rounded small shadow-sm" style="z-index: 20;">Hết hàng</div>
+                            @endif
+                        </div>
+                        
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title text-truncate mb-1" title="{{ $product->name }}">
+                                <a href="{{ route('product.show', $product->id) }}" class="text-decoration-none text-dark">{{ $product->name }}</a>
+                            </h5>
+                            <small class="text-muted mb-2"><i class="bi bi-pen"></i> {{ $product->author }}</small>
                             
-                            <div class="card-body d-flex flex-column">
-                                <h5 class="card-title text-truncate mb-1" title="{{ $product->name }}">
-                                    <a href="{{ route('product.show', $product->id) }}" class="text-decoration-none text-dark">{{ $product->name }}</a>
-                                </h5>
-                                <small class="text-muted mb-2"><i class="bi bi-pen"></i> {{ $product->author }}</small>
-                                
-                                <div class="mt-auto">
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <span class="text-danger fw-bold fs-5">{{ number_format($product->price) }} đ</span>
-                                    </div>
-                                    <div class="d-grid gap-2">
-                                        <a href="{{ route('product.show', $product->id) }}" class="btn btn-outline-primary">
-                                            Xem chi tiết
+                            <div class="mt-auto">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="text-danger fw-bold fs-5">{{ number_format($product->price) }} đ</span>
+                                </div>
+                                <div class="d-grid gap-2">
+                                    <a href="{{ route('product.show', $product->id) }}" class="btn btn-outline-primary">
+                                        Xem chi tiết
+                                    </a>
+
+                                    @if($product->stock > 0)
+                                        <a href="{{ route('cart.add', $product->id) }}" class="btn btn-primary require-login">
+                                            <i class="bi bi-cart-plus"></i> Thêm vào giỏ
                                         </a>
 
-                                        @if($product->stock > 0)
-                                            <a href="{{ route('cart.add', $product->id) }}" class="btn btn-primary require-login">
-                                                <i class="bi bi-cart-plus"></i> Thêm vào giỏ
-                                            </a>
-
-                                            <a href="{{ route('cart.add', $product->id) }}?buy_now=true" class="btn btn-danger require-login">
-                                                <i class="bi bi-lightning-charge-fill"></i> Mua ngay
-                                            </a>
-                                        @endif
-                                    </div>
+                                        <a href="{{ route('cart.add', $product->id) }}?buy_now=true" class="btn btn-danger require-login">
+                                            <i class="bi bi-lightning-charge-fill"></i> Mua ngay
+                                        </a>
+                                    @endif
                                 </div>
                             </div>
                         </div>
                     </div>
-                    @empty
-                    <div class="col-12 text-center py-5">
-                        <div class="alert alert-warning d-inline-block px-5">
-                            <i class="bi bi-exclamation-circle me-2"></i> Không tìm thấy sách nào phù hợp với bộ lọc.
-                        </div>
-                    </div>
-                    @endforelse
                 </div>
+                @empty
+                <div class="col-12 text-center py-5">
+                    <div class="alert alert-warning d-inline-block px-5">
+                        <i class="bi bi-exclamation-circle me-2"></i> Không tìm thấy sách nào phù hợp.
+                    </div>
+                </div>
+                @endforelse
+            </div>
+            
+            <div class="mt-5 d-flex justify-content-center">
+                {{ $products->appends(request()->query())->links() }}
+            </div>
                 
                 <div class="mt-5 d-flex justify-content-center">
                     {{ $products->appends(request()->query())->links() }}
