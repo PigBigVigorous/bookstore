@@ -251,10 +251,6 @@
                 </div>
                 @endforelse
             </div>
-            
-            <div class="mt-5 d-flex justify-content-center">
-                {{ $products->appends(request()->query())->links() }}
-            </div>
                 
                 <div class="mt-5 d-flex justify-content-center">
                     {{ $products->appends(request()->query())->links() }}
