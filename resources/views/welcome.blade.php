@@ -50,6 +50,16 @@
         .transition-all {
             transition: all 0.3s ease;
         }
+        .hero-banner {
+            /* Dùng Blade trong thẻ style hoạt động ổn định hơn */
+            background-image: url('{{ asset("images/banner-main.jpg") }}');
+            background-size: cover;
+            background-position: center;
+            height: 450px;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
     </style>
 </head>
 <body>
@@ -104,32 +114,15 @@
         </div>
     </nav>
 
-    <div class="position-relative text-white text-center py-5 mb-5" 
-         style="background-image: url('{{ asset('images/banner-main.jpg') }}'); 
-                background-size: cover; 
-                background-position: center; 
-                height: 450px; 
-                display: flex; 
-                align-items: center;">
+    <div class="hero-banner text-white text-center py-5 mb-5">
         
         <div class="position-absolute top-0 start-0 w-100 h-100" style="background: rgba(0, 0, 0, 0.6);"></div>
         
         <div class="container position-relative" style="z-index: 2;">
-            <h1 class="display-3 fw-bold mb-3 animate-fade-in">Thế Giới Sách</h1>
+            <h1 class="display-3 fw-bold mb-3">Thế Giới Sách - BookStore</h1>
             <p class="lead mb-4 fs-4 text-light">Khám phá tri thức - Mở rộng tầm nhìn</p>
-            
-            <div class="d-flex justify-content-center gap-3">
-                <a href="#product-list" class="btn btn-primary btn-lg px-5 rounded-pill shadow-lg">
-                    <i class="bi bi-cart4"></i> Mua Ngay
-                </a>
-                <a href="{{ route('register') }}" class="btn btn-outline-light btn-lg px-5 rounded-pill">
-                    Đăng Ký
-                </a>
-            </div>
         </div>
     </div>
-
-    <div id="product-list" class="container my-5">
 
     <div class="container my-5">
         <div class="row">
