@@ -18,13 +18,18 @@ class CartController extends Controller
     }
 
     // Thêm vào giỏ
-    public function addToCart($id)
+    public function addToCart(Request $request, $id)
     {
         $product = Product::findOrFail($id);
         $cart = session()->get('cart', []);
+        $quantity = $request->input('quantity', 1);
+
+        if ($product->stock < $quantity) {
+            return redirect()->back()->with('error', 'Số lượng sản phẩm không đủ!');
+        }
 
         if(isset($cart[$id])) {
-            $cart[$id]['quantity']++;
+            $cart[$id]['quantity'] += $quantity;
         } else {
             $cart[$id] = [
                 "name" => $product->name,
@@ -49,14 +54,14 @@ class CartController extends Controller
                 Cart::create([
                     'user_id' => Auth::id(),
                     'product_id' => $id,
-                    'quantity' => 1
+                    'quantity' => $cart[$id]['quantity']
                 ]);
             }
         }
 
         // [MỚI] Kiểm tra nếu có tham số 'buy_now' trên URL thì chuyển đến giỏ hàng
         if (request()->has('buy_now') && request()->buy_now == 'true') {
-            return redirect()->route('cart.index')->with('success', 'Đã thêm vào giỏ, vui lòng kiểm tra!');
+            return redirect()->route('checkout.index');
         }
 
         return redirect()->back()->with('success', 'Đã thêm sách vào giỏ!');

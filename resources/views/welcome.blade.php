@@ -238,21 +238,36 @@
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <span class="text-danger fw-bold fs-5">{{ number_format($product->price) }} đ</span>
                                 </div>
-                                <div class="d-grid gap-2">
-                                    <a href="{{ route('product.show', $product->id) }}" class="btn btn-outline-primary">
-                                        Xem chi tiết
-                                    </a>
 
-                                    @if($product->stock > 0)
-                                        <a href="{{ route('cart.add', $product->id) }}" class="btn btn-primary require-login">
-                                            <i class="bi bi-cart-plus"></i> Thêm vào giỏ
-                                        </a>
+                                @if($product->stock > 0)
+                                    <form action="{{ route('cart.add', $product->id) }}" method="POST">
+                                        @csrf
+                                        
+                                        <div class="input-group mb-3 input-group-sm">
+                                            <span class="input-group-text">SL:</span>
+                                            <input type="number" name="quantity" value="1" min="1" max="{{ $product->stock }}" class="form-control text-center">
+                                        </div>
 
-                                        <a href="{{ route('cart.add', $product->id) }}?buy_now=true" class="btn btn-danger require-login">
-                                            <i class="bi bi-lightning-charge-fill"></i> Mua ngay
-                                        </a>
-                                    @endif
-                                </div>
+                                        <div class="d-grid gap-2">
+                                            <a href="{{ route('product.show', $product->id) }}" class="btn btn-outline-primary">
+                                                Xem chi tiết
+                                            </a>
+
+                                            <button type="submit" class="btn btn-primary require-login">
+                                                <i class="bi bi-cart-plus"></i> Thêm vào giỏ
+                                            </button>
+
+                                            <button type="submit" name="buy_now" value="true" class="btn btn-danger require-login">
+                                                <i class="bi bi-lightning-charge-fill"></i> Mua ngay
+                                            </button>
+                                        </div>
+                                    </form>
+                                @else
+                                    <div class="d-grid gap-2">
+                                        <a href="{{ route('product.show', $product->id) }}" class="btn btn-outline-primary">Xem chi tiết</a>
+                                        <button class="btn btn-secondary" disabled>Hết hàng</button>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     </div>

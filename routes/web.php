@@ -17,7 +17,8 @@ Route::get('/product/{id}', [HomeController::class, 'show'])->name('product.show
 
 // Giỏ hàng
 Route::get('cart', [CartController::class, 'index'])->name('cart.index');
-Route::get('add-to-cart/{id}', [CartController::class, 'addToCart'])->name('cart.add');
+//Route::get('add-to-cart/{id}', [CartController::class, 'addToCart'])->name('cart.add');
+Route::post('add-to-cart/{id}', [CartController::class, 'addToCart'])->name('cart.add');
 Route::patch('update-cart', [CartController::class, 'update'])->name('cart.update');
 Route::delete('remove-from-cart', [CartController::class, 'remove'])->name('cart.remove');
 
