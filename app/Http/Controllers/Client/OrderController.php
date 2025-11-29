@@ -4,30 +4,37 @@ namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Order;
-use App\Models\OrderDetail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\Order;
+use App\Models\OrderDetail;
 use App\Models\Product;
 use App\Models\Cart;
 
 class OrderController extends Controller
 {
-    // Hiển thị form thanh toán
-    public function index()
+    public function index(Request $request)
     {
-        if (!Auth::check()) {
-            return redirect()->route('login')->with('error', 'Vui lòng đăng nhập để thanh toán!');
+        // Nếu người dùng bấm "Thanh toán" từ trang Giỏ hàng -> Reset lại chế độ Mua ngay
+        if ($request->has('source') && $request->source == 'cart') {
+            session()->forget(['checkout_data', 'checkout_type']);
         }
-        $cart = session()->get('cart', []);
+
+        // Kiểm tra xem đang checkout kiểu gì
+        if (session('checkout_type') === 'buy_now') {
+            $cart = session('checkout_data', []); // Lấy từ session tạm
+        } else {
+            $cart = session('cart', []); // Lấy từ giỏ hàng chính
+        }
+
         if(empty($cart)) {
-            return redirect()->route('home')->with('error', 'Giỏ hàng trống!');
+            return redirect()->route('home')->with('error', 'Không có sản phẩm để thanh toán!');
         }
+        
         $user = Auth::user();
         return view('client.checkout.index', compact('cart', 'user'));
     }
 
-    // Xử lý đặt hàng
     public function store(Request $request)
     {
         $request->validate([
@@ -36,7 +43,16 @@ class OrderController extends Controller
             'receiver_address' => 'required',
         ]);
 
-        $cart = session()->get('cart', []);
+        // Xác định nguồn dữ liệu để tạo đơn
+        if (session('checkout_type') === 'buy_now') {
+            $cart = session('checkout_data', []);
+        } else {
+            $cart = session('cart', []);
+        }
+
+        if (empty($cart)) {
+            return redirect()->route('home')->with('error', 'Dữ liệu đơn hàng lỗi!');
+        }
         
         // Tính tổng tiền
         $total = 0;
@@ -47,9 +63,9 @@ class OrderController extends Controller
         try {
             DB::beginTransaction();
 
-            // 1. Tạo đơn hàng và LIÊN KẾT VỚI USER
+            // 1. Tạo đơn hàng
             $order = Order::create([
-                'user_id' => Auth::id(), // [QUAN TRỌNG] Lấy ID người dùng hiện tại
+                'user_id' => Auth::id(),
                 'receiver_name' => $request->receiver_name,
                 'receiver_phone' => $request->receiver_phone,
                 'receiver_address' => $request->receiver_address,
@@ -58,7 +74,7 @@ class OrderController extends Controller
                 'status' => 'pending'
             ]);
 
-            // 2. Lưu chi tiết đơn hàng
+            // 2. Tạo chi tiết đơn hàng & Trừ tồn kho
             foreach($cart as $id => $item) {
                 OrderDetail::create([
                     'order_id' => $order->id,
@@ -67,7 +83,6 @@ class OrderController extends Controller
                     'price' => $item['price'],
                 ]);
                 
-                // Trừ tồn kho (Optional)
                 $product = Product::find($id);
                 if($product) {
                     $product->decrement('stock', $item['quantity']);
@@ -76,60 +91,37 @@ class OrderController extends Controller
 
             DB::commit();
 
-            // 3. Xóa giỏ hàng sau khi mua thành công
-            session()->forget('cart');
+            // 3. DỌN DẸP DỮ LIỆU SAU KHI MUA
+            if (session('checkout_type') === 'buy_now') {
+                // Nếu là Mua ngay: Chỉ xóa session tạm, Giỏ hàng chính vẫn CÒN NGUYÊN
+                session()->forget(['checkout_data', 'checkout_type']);
+            } else {
+                // Nếu là Mua từ giỏ: Xóa sạch giỏ hàng
+                session()->forget('cart');
+                if (Auth::check()) {
+                    Cart::where('user_id', Auth::id())->delete();
+                }
+            }
 
             return redirect()->route('home')->with('success', 'Đặt hàng thành công! Mã đơn: #' . $order->id);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Lỗi: ' . $e->getMessage());
         }
     }
-    //Hàm xử lý hủy đơn hàng khi ở trang thanh toán với "Mua ngay"
+
+    // Hàm Hủy thanh toán
     public function cancel()
     {
-        // Kiểm tra xem có phải đang trong chế độ "Mua ngay" không
-        if (session()->has('is_buy_now') && session()->get('is_buy_now') == true) {
-            $item = session()->get('buy_now_item');
-            $cart = session()->get('cart', []);
-
-            // 1. Hoàn tác trong Session
-            if (isset($cart[$item['id']])) {
-                // Trừ số lượng đã thêm
-                $cart[$item['id']]['quantity'] -= $item['qty'];
-                
-                // Nếu số lượng <= 0 thì xóa luôn khỏi giỏ
-                if ($cart[$item['id']]['quantity'] <= 0) {
-                    unset($cart[$item['id']]);
-                }
-                session()->put('cart', $cart);
-            }
-
-            // 2. Hoàn tác trong Database (Bảng carts)
-            if (Auth::check()) {
-                $dbCart = Cart::where('user_id', Auth::id())
-                              ->where('product_id', $item['id'])
-                              ->first();
-                
-                if ($dbCart) {
-                    $dbCart->quantity -= $item['qty'];
-                    if ($dbCart->quantity <= 0) {
-                        $dbCart->delete();
-                    } else {
-                        $dbCart->save();
-                    }
-                }
-            }
-
-            // Xóa các session tạm
-            session()->forget(['is_buy_now', 'buy_now_item']);
-
-            // Quay lại trang chi tiết sản phẩm đó
-            return redirect()->route('product.show', $item['id']);
+        if (session('checkout_type') === 'buy_now') {
+            // Nếu đang mua ngay mà hủy -> Xóa session tạm
+            session()->forget(['checkout_data', 'checkout_type']);
+            // Quay về trang chủ (hoặc trang sản phẩm nếu muốn)
+            return redirect()->route('home');
         }
 
-        // Nếu là thanh toán giỏ hàng bình thường thì quay về trang giỏ hàng
+        // Nếu đang thanh toán giỏ hàng mà hủy -> Quay về trang giỏ hàng (dữ liệu vẫn còn)
         return redirect()->route('cart.index');
     }
 }

@@ -3,12 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>Giỏ hàng của bạn</title>
-    <!-- SỬA LINK CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 </head>
 <body>
-    <!-- Navbar đơn giản -->
     <nav class="navbar navbar-light bg-white border-bottom mb-4">
         <div class="container">
             <a class="navbar-brand fw-bold" href="/">BOOKSTORE</a>
@@ -76,7 +74,8 @@
                 <h4 class="me-4 mb-0">Tổng cộng: <span class="text-danger fw-bold">{{ number_format($total) }} đ</span></h4>
                 <div>
                     <a href="/" class="btn btn-outline-secondary me-2">Tiếp tục mua</a>
-                    <a href="{{ route('checkout.index') }}" class="btn btn-success btn-lg">Thanh toán ngay</a>
+                    
+                    <a href="{{ route('checkout.index', ['source' => 'cart']) }}" class="btn btn-success btn-lg">Thanh toán ngay</a>
                 </div>
             </div>
         @else
