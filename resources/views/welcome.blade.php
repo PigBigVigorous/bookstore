@@ -224,10 +224,17 @@
                                         <span class="text-danger fw-bold fs-5">{{ number_format($product->price) }} đ</span>
                                     </div>
                                     <div class="d-grid gap-2">
-                                        <a href="{{ route('product.show', $product->id) }}" class="btn btn-outline-primary">Xem chi tiết</a>
+                                        <a href="{{ route('product.show', $product->id) }}" class="btn btn-outline-primary">
+                                            Xem chi tiết
+                                        </a>
+
                                         @if($product->stock > 0)
                                             <a href="{{ route('cart.add', $product->id) }}" class="btn btn-primary">
                                                 <i class="bi bi-cart-plus"></i> Thêm vào giỏ
+                                            </a>
+
+                                            <a href="{{ route('cart.add', $product->id) }}?buy_now=true" class="btn btn-danger">
+                                                <i class="bi bi-lightning-charge-fill"></i> Mua ngay
                                             </a>
                                         @endif
                                     </div>

@@ -33,6 +33,12 @@ class CartController extends Controller
         }
 
         session()->put('cart', $cart);
+
+        // [MỚI] Kiểm tra nếu có tham số 'buy_now' trên URL thì chuyển đến giỏ hàng
+        if (request()->has('buy_now') && request()->buy_now == 'true') {
+            return redirect()->route('cart.index')->with('success', 'Đã thêm vào giỏ, vui lòng kiểm tra!');
+        }
+
         return redirect()->back()->with('success', 'Đã thêm sách vào giỏ!');
     }
 
