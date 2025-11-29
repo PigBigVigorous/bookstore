@@ -40,6 +40,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    //Hủy thành toán
+    Route::get('checkout/cancel', [ClientOrderController::class, 'cancel'])->name('checkout.cancel');
 });
 
 
@@ -59,6 +62,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::patch('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.update_status');
     Route::delete('orders/{order}', [OrderController::class, 'destroy'])->name('orders.destroy');
+
+    
 });
 
 require __DIR__.'/auth.php';
