@@ -12,7 +12,7 @@
         .product-image-large {
             width: 100%;
             height: 500px;
-            object-fit: cover; /* Hoặc contain nếu muốn hiển thị full ảnh không bị cắt */
+            object-fit: cover; 
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
@@ -126,19 +126,28 @@
                     </div>
                 </div>
 
-                <div class="d-flex gap-3 mt-4">
-                    @if($product->stock > 0)
-                        <a href="{{ route('cart.add', $product->id) }}" class="btn btn-outline-primary btn-lg px-4 require-login">
-                            <i class="bi bi-cart-plus me-2"></i> Thêm vào giỏ
-                        </a>
+                @if($product->stock > 0)
+                    <form action="{{ route('cart.add', $product->id) }}" method="POST">
+                        @csrf
+                        
+                        <div class="d-flex align-items-center mb-4">
+                            <label class="fw-bold me-3">Số lượng:</label>
+                            <input type="number" name="quantity" value="1" min="1" max="{{ $product->stock }}" class="form-control text-center" style="width: 100px;">
+                        </div>
 
-                        <a href="{{ route('cart.add', $product->id) }}?buy_now=true" class="btn btn-danger btn-lg px-5 require-login">
-                            <i class="bi bi-lightning-charge-fill me-2"></i> Mua ngay
-                        </a>
-                    @else
-                        <button class="btn btn-secondary btn-lg disabled">Tạm hết hàng</button>
-                    @endif
-                </div>
+                        <div class="d-flex gap-3">
+                            <button type="submit" class="btn btn-outline-primary btn-lg px-4 require-login">
+                                <i class="bi bi-cart-plus me-2"></i> Thêm vào giỏ
+                            </button>
+
+                            <button type="submit" name="buy_now" value="true" class="btn btn-danger btn-lg px-5 require-login">
+                                <i class="bi bi-lightning-charge-fill me-2"></i> Mua ngay
+                            </button>
+                        </div>
+                    </form>
+                @else
+                    <button class="btn btn-secondary btn-lg disabled">Tạm hết hàng</button>
+                @endif
             </div>
         </div>
     </div>
@@ -173,28 +182,23 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Kiểm tra trạng thái đăng nhập (đã sửa lỗi cú pháp)
             var isLoggedIn = "{{ Auth::check() ? 'true' : 'false' }}" === "true";
             
-            // Khởi tạo Modal
             if (typeof bootstrap !== 'undefined') {
                 var modalEl = document.getElementById('authRequestModal');
                 if (modalEl) {
                     var authModal = new bootstrap.Modal(modalEl);
 
-                    // Gán sự kiện click cho các nút có class 'require-login'
                     var buttons = document.querySelectorAll('.require-login');
                     buttons.forEach(function(btn) {
                         btn.addEventListener('click', function(e) {
                             if (!isLoggedIn) {
-                                e.preventDefault(); // Chặn chuyển trang
-                                authModal.show();   // Hiện modal thông báo
+                                e.preventDefault(); 
+                                authModal.show();
                             }
                         });
                     });
                 }
-            } else {
-                console.error('Bootstrap JS chưa được load.');
             }
         });
     </script>
