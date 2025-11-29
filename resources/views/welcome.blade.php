@@ -60,6 +60,20 @@
             align-items: center;
             position: relative;
         }
+        /* Ẩn phần text thông tin (Showing x to y of z results) */
+        .pagination .small.text-muted {
+            display: none !important;
+        }
+        
+        /* Hoặc nếu nó nằm trong thẻ div bao ngoài */
+        nav .d-none.flex-sm-fill.d-sm-flex.align-items-sm-center.justify-content-sm-between > div:first-child {
+            display: none;
+        }
+        
+        /* Căn giữa lại thanh phân trang sau khi ẩn */
+        nav .d-none.flex-sm-fill.d-sm-flex.align-items-sm-center.justify-content-sm-between {
+            justify-content: center !important;
+        }
     </style>
 </head>
 <body>
