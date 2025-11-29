@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 
     <style>
-        /* Container giữ hình ảnh - thiết lập khung cố định */
         .product-img-container {
             position: relative;
             height: 280px;
@@ -15,16 +14,12 @@
             background: #f8f9fa;
             cursor: pointer;
         }
-        
-        /* Ảnh mặc định (Thumb) - cắt ảnh cho vừa khung */
         .product-thumb {
             width: 100%;
             height: 100%;
             object-fit: cover;
             transition: opacity 0.3s;
         }
-
-        /* Lớp phủ chứa ảnh Full (ẩn mặc định) */
         .product-full-img-overlay {
             position: absolute;
             top: 0; left: 0;
@@ -39,21 +34,15 @@
             z-index: 10;
             border-bottom: 1px solid #eee;
         }
-
-        /* Ảnh full bên trong lớp phủ - hiển thị trọn vẹn (contain) */
         .product-full-img-overlay img {
             max-width: 100%;
             max-height: 100%;
             object-fit: contain; 
         }
-
-        /* Hiệu ứng: Khi di chuột vào container thì hiện lớp phủ */
         .product-img-container:hover .product-full-img-overlay {
             opacity: 1;
             visibility: visible;
         }
-
-        /* Hiệu ứng đổ bóng nhẹ khi hover vào Card sản phẩm */
         .hover-shadow:hover {
             transform: translateY(-5px);
             box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
@@ -229,11 +218,11 @@
                                         </a>
 
                                         @if($product->stock > 0)
-                                            <a href="{{ route('cart.add', $product->id) }}" class="btn btn-primary">
+                                            <a href="{{ route('cart.add', $product->id) }}" class="btn btn-primary require-login">
                                                 <i class="bi bi-cart-plus"></i> Thêm vào giỏ
                                             </a>
 
-                                            <a href="{{ route('cart.add', $product->id) }}?buy_now=true" class="btn btn-danger">
+                                            <a href="{{ route('cart.add', $product->id) }}?buy_now=true" class="btn btn-danger require-login">
                                                 <i class="bi bi-lightning-charge-fill"></i> Mua ngay
                                             </a>
                                         @endif
@@ -264,6 +253,62 @@
         </div>
     </footer>
 
+    <div class="modal fade" id="authRequestModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header border-bottom-0">
+            <h5 class="modal-title fw-bold text-danger">
+                <i class="bi bi-exclamation-circle-fill"></i> Yêu cầu đăng nhập
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body py-4">
+            <p class="mb-0 fs-5 text-center">Bạn cần đăng nhập để thực hiện mua sắm.</p>
+          </div>
+          <div class="modal-footer border-top-0 justify-content-center pb-4">
+            <a href="{{ route('login') }}" class="btn btn-primary px-4 me-2">Đăng nhập</a>
+            <button type="button" class="btn btn-secondary px-4 me-2" data-bs-dismiss="modal">Để sau</button>
+            
+            
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // 1. Kiểm tra trạng thái đăng nhập
+            // Sử dụng cú pháp này để tránh lỗi gạch đỏ trong editor và đảm bảo giá trị true/false chuẩn
+            var isLoggedIn = "{{ Auth::check() ? 'true' : 'false' }}" === "true";
+            
+            // 2. Kiểm tra xem thư viện Bootstrap đã được load chưa
+            if (typeof bootstrap === 'undefined') {
+                console.error('Lỗi: Thư viện Bootstrap chưa được load!');
+                return;
+            }
+
+            // 3. Khởi tạo Modal (Thêm kiểm tra phần tử tồn tại để tránh lỗi null)
+            var modalElement = document.getElementById('authRequestModal');
+            if (modalElement) {
+                var authModal = new bootstrap.Modal(modalElement);
+
+                // 4. Lắng nghe sự kiện click
+                var buttons = document.querySelectorAll('.require-login');
+                buttons.forEach(function(btn) {
+                    btn.addEventListener('click', function(e) {
+                        if (!isLoggedIn) {
+                            // Nếu chưa đăng nhập -> Chặn chuyển trang -> Hiện Modal
+                            e.preventDefault();
+                            authModal.show();
+                        }
+                    });
+                });
+            } else {
+                console.error('Lỗi: Không tìm thấy Modal có ID "authRequestModal"');
+            }
+        });
+    </script>
 </body>
 </html>
