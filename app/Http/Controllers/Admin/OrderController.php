@@ -12,7 +12,7 @@ class OrderController extends Controller
     public function index()
     {
         // Lấy danh sách đơn hàng, sắp xếp mới nhất lên đầu, phân trang
-        $orders = Order::with('user')->orderBy('created_at', 'desc')->paginate(10);
+        $orders = Order::with('user')->orderBy('id', 'asc')->paginate(10); 
         return view('admin.orders.index', compact('orders'));
     }
 
