@@ -21,6 +21,17 @@
             color: #dc3545;
             font-weight: bold;
         }
+        .related-img {
+            height: 250px;
+            object-fit: cover;
+        }
+        .breadcrumb-item a {
+            text-decoration: none;
+            color: #6c757d;
+        }
+        .breadcrumb-item a:hover {
+            color: #0d6efd;
+        }
     </style>
 </head>
 <body>
@@ -29,11 +40,9 @@
             <a class="navbar-brand fw-bold text-primary" href="/">
                 <i class="bi bi-book-half"></i> BOOKSTORE
             </a>
-            
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
                 <span class="navbar-toggler-icon"></span>
             </button>
-
             <div class="collapse navbar-collapse" id="navbarContent">
                 <form class="d-flex mx-auto my-2 my-lg-0" action="{{ route('home') }}" method="GET">
                     <div class="input-group" style="width: 400px;">
@@ -41,7 +50,6 @@
                         <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
                     </div>
                 </form>
-
                 <div class="d-flex gap-2 align-items-center">
                     <a href="{{ route('cart.index') }}" class="btn btn-outline-success position-relative me-2">
                         <i class="bi bi-cart3"></i>
@@ -51,7 +59,6 @@
                             </span>
                         @endif
                     </a>
-
                     @auth
                         <div class="dropdown">
                             <button class="btn btn-light dropdown-toggle border" type="button" data-bs-toggle="dropdown">
@@ -86,6 +93,13 @@
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-0">
                     <li class="breadcrumb-item"><a href="{{ route('home') }}">Trang chủ</a></li>
+                    @if($product->category)
+                        <li class="breadcrumb-item">
+                            <a href="{{ route('home', ['category' => $product->category_id]) }}">
+                                {{ $product->category->name }}
+                            </a>
+                        </li>
+                    @endif
                     <li class="breadcrumb-item active" aria-current="page">{{ $product->name }}</li>
                 </ol>
             </nav>
@@ -93,6 +107,19 @@
     </div>
 
     <div class="container my-5">
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
         <div class="row">
             <div class="col-md-5 mb-4">
                 @if($product->image)
@@ -130,9 +157,13 @@
                     <form action="{{ route('cart.add', $product->id) }}" method="POST">
                         @csrf
                         
-                        <div class="d-flex align-items-center mb-4">
-                            <label class="fw-bold me-3">Số lượng:</label>
-                            <input type="number" name="quantity" value="1" min="1" max="{{ $product->stock }}" class="form-control text-center" style="width: 100px;">
+                        <div class="mb-4">
+                            <label class="fw-bold mb-2">Số lượng:</label>
+                            <div class="input-group" style="width: 140px;">
+                                <button class="btn btn-outline-secondary" type="button" id="btn-minus"><i class="bi bi-dash"></i></button>
+                                <input type="number" name="quantity" id="quantity" value="1" min="1" max="{{ $product->stock }}" class="form-control text-center">
+                                <button class="btn btn-outline-secondary" type="button" id="btn-plus"><i class="bi bi-plus"></i></button>
+                            </div>
                         </div>
 
                         <div class="d-flex gap-3">
@@ -148,8 +179,46 @@
                 @else
                     <button class="btn btn-secondary btn-lg disabled">Tạm hết hàng</button>
                 @endif
+
+                <div class="mt-4 pt-3 border-top">
+                    <span class="fw-bold me-2">Chia sẻ:</span>
+                    <a href="#" class="btn btn-sm btn-primary"><i class="bi bi-facebook"></i> Facebook</a>
+                    <a href="#" class="btn btn-sm btn-info text-white"><i class="bi bi-twitter"></i> Twitter</a>
+                </div>
             </div>
         </div>
+        
+        <div class="mt-5">
+            <h3 class="fw-bold mb-4 border-start border-4 border-primary ps-3">Sản phẩm liên quan</h3>
+            <div class="row">
+                @if(isset($relatedProducts) && $relatedProducts->count() > 0)
+                    @foreach($relatedProducts as $related)
+                        <div class="col-md-3 col-6 mb-4">
+                            <div class="card h-100 shadow-sm border-0">
+                                <a href="{{ route('product.show', $related->id) }}">
+                                    @if($related->image)
+                                        <img src="{{ Storage::url($related->image) }}" class="card-img-top related-img" alt="{{ $related->name }}">
+                                    @else
+                                        <div class="bg-secondary text-white d-flex justify-content-center align-items-center related-img">
+                                            <i class="bi bi-image"></i>
+                                        </div>
+                                    @endif
+                                </a>
+                                <div class="card-body">
+                                    <h6 class="card-title text-truncate">
+                                        <a href="{{ route('product.show', $related->id) }}" class="text-decoration-none text-dark">{{ $related->name }}</a>
+                                    </h6>
+                                    <p class="card-text text-danger fw-bold">{{ number_format($related->price) }} đ</p>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                @else
+                    <p class="text-muted">Chưa có sản phẩm liên quan nào.</p>
+                @endif
+            </div>
+        </div>
+
     </div>
 
     <footer class="bg-light text-center text-lg-start mt-5 border-top py-4">
@@ -173,7 +242,6 @@
           <div class="modal-footer border-top-0 justify-content-center pb-4">
           <a href="{{ route('login') }}" class="btn btn-primary px-4">Đăng nhập</a>  
           <button type="button" class="btn btn-secondary px-4 me-2" data-bs-dismiss="modal">Để sau</button>
-
           </div>
         </div>
       </div>
@@ -183,13 +251,12 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // Logic Auth Modal cũ
             var isLoggedIn = "{{ Auth::check() ? 'true' : 'false' }}" === "true";
-            
             if (typeof bootstrap !== 'undefined') {
                 var modalEl = document.getElementById('authRequestModal');
                 if (modalEl) {
                     var authModal = new bootstrap.Modal(modalEl);
-
                     var buttons = document.querySelectorAll('.require-login');
                     buttons.forEach(function(btn) {
                         btn.addEventListener('click', function(e) {
@@ -200,6 +267,24 @@
                         });
                     });
                 }
+            }
+
+            // [MỚI] Logic tăng giảm số lượng
+            const btnMinus = document.getElementById('btn-minus');
+            const btnPlus = document.getElementById('btn-plus');
+            const qtyInput = document.getElementById('quantity');
+
+            if(btnMinus && btnPlus && qtyInput) {
+                btnMinus.addEventListener('click', function() {
+                    let val = parseInt(qtyInput.value);
+                    if(val > 1) qtyInput.value = val - 1;
+                });
+
+                btnPlus.addEventListener('click', function() {
+                    let val = parseInt(qtyInput.value);
+                    let max = parseInt(qtyInput.getAttribute('max'));
+                    if(val < max) qtyInput.value = val + 1;
+                });
             }
         });
     </script>

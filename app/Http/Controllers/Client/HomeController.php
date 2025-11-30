@@ -56,7 +56,16 @@ class HomeController extends Controller
     }
     
     public function show($id) {
-        $product = Product::findOrFail($id);
-        return view('client.products.show', compact('product'));
-    }
+    // 1. Eager load 'category' để lấy tên danh mục cho breadcrumb
+    $product = Product::with('category')->findOrFail($id);
+    
+    // 2. Lấy 4 sản phẩm liên quan (cùng danh mục, trừ sản phẩm hiện tại)
+    $relatedProducts = Product::where('category_id', $product->category_id)
+                              ->where('id', '!=', $id)
+                              ->inRandomOrder() // Lấy ngẫu nhiên
+                              ->take(4)
+                              ->get();
+
+    return view('client.products.show', compact('product', 'relatedProducts'));
+}
 }
