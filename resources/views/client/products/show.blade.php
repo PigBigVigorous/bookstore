@@ -9,13 +9,33 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 
     <style>
-        .product-image-large {
-            width: 100%;
-            height: 500px;
-            object-fit: cover; 
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
+        .image-card-container {
+        background-color: #ffffff;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px; /* Bo tròn góc thẻ */
+        padding: 20px;       /* Khoảng cách từ viền vào ảnh */
+        height: 450px;       /* Chiều cao cố định cho khung thẻ, giúp giao diện gọn */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* Đổ bóng nhẹ cho thẻ */
+    }
+
+    /* CSS MỚI: Tinh chỉnh ảnh bên trong */
+    .product-image-large {
+        max-width: 100%;     /* Không tràn chiều ngang */
+        max-height: 100%;    /* Không tràn chiều dọc */
+        width: auto;         /* Tự động theo tỷ lệ */
+        height: auto;        /* Tự động theo tỷ lệ */
+        object-fit: contain; /* QUAN TRỌNG: Giúp hiện ĐỦ ảnh, không bị cắt */
+        filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2)); /* Đổ bóng cho quyển sách nổi lên */
+        border-radius: 4px;
+        transition: transform 0.3s ease; /* Hiệu ứng khi di chuột */
+    }
+
+    .product-image-large:hover {
+        transform: scale(1.05); /* Phóng to nhẹ khi di chuột vào sách */
+    }
         .price-tag {
             font-size: 2rem;
             color: #dc3545;
@@ -122,13 +142,16 @@
 
         <div class="row">
             <div class="col-md-5 mb-4">
-                @if($product->image)
-                    <img src="{{ Storage::url($product->image) }}" class="product-image-large" alt="{{ $product->name }}">
-                @else
-                    <div class="bg-secondary text-white d-flex justify-content-center align-items-center product-image-large">
-                        <i class="bi bi-image fs-1"></i>
-                    </div>
-                @endif
+                <div class="image-card-container">
+                    @if($product->image)
+                        <img src="{{ Storage::url($product->image) }}" class="product-image-large" alt="{{ $product->name }}">
+                    @else
+                        <div class="text-secondary d-flex flex-column align-items-center">
+                            <i class="bi bi-image fs-1 mb-2"></i>
+                            <p>Chưa có ảnh bìa</p>
+                        </div>
+                    @endif
+                </div>
             </div>
 
             <div class="col-md-7">
