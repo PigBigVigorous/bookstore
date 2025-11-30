@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -52,7 +53,7 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         // Không cho phép tự xóa chính mình
-        if (auth()->id() == $user->id) {
+        if (Auth::id() == $user->id) {
             return redirect()->back()->with('error', 'Bạn không thể xóa chính tài khoản mình đang đăng nhập!');
         }
 
