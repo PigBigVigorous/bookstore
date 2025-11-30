@@ -2,11 +2,13 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BookStore Online</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 
     <style>
+        /* CSS cho Ảnh sản phẩm & Overlay */
         .product-img-container {
             position: relative;
             height: 280px;
@@ -43,6 +45,8 @@
             opacity: 1;
             visibility: visible;
         }
+        
+        /* Hiệu ứng Hover Card */
         .hover-shadow:hover {
             transform: translateY(-5px);
             box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
@@ -50,8 +54,9 @@
         .transition-all {
             transition: all 0.3s ease;
         }
+
+        /* Banner */
         .hero-banner {
-            /* Dùng Blade trong thẻ style hoạt động ổn định hơn */
             background-image: url('{{ asset("images/banner-main.jpg") }}');
             background-size: cover;
             background-position: center;
@@ -60,17 +65,11 @@
             align-items: center;
             position: relative;
         }
-        /* Ẩn phần text thông tin (Showing x to y of z results) */
-        .pagination .small.text-muted {
-            display: none !important;
-        }
-        
-        /* Hoặc nếu nó nằm trong thẻ div bao ngoài */
+
+        /* Ẩn text phân trang mặc định của Bootstrap (Showing results...) */
         nav .d-none.flex-sm-fill.d-sm-flex.align-items-sm-center.justify-content-sm-between > div:first-child {
             display: none;
         }
-        
-        /* Căn giữa lại thanh phân trang sau khi ẩn */
         nav .d-none.flex-sm-fill.d-sm-flex.align-items-sm-center.justify-content-sm-between {
             justify-content: center !important;
         }
@@ -83,55 +82,85 @@
                 <i class="bi bi-book-half"></i> BOOKSTORE
             </a>
             
-            <form class="d-flex mx-auto" action="{{ route('home') }}" method="GET">
-                <div class="input-group" style="width: 400px;">
-                    <input class="form-control" type="search" name="keyword" placeholder="Tìm sách, tác giả..." value="{{ request('keyword') }}">
-                    <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
-                </div>
-            </form>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-            <div class="d-flex gap-2 align-items-center">
-                <a href="{{ route('cart.index') }}" class="btn btn-outline-success position-relative me-2">
-                    <i class="bi bi-cart3"></i>
-                    @if(session('cart'))
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                            {{ array_sum(array_column((array) session('cart'), 'quantity')) }}
-                        </span>
-                    @endif
-                </a>
-
-                @auth
-                    <div class="dropdown">
-                        <button class="btn btn-light dropdown-toggle border" type="button" data-bs-toggle="dropdown">
-                            {{ Auth::user()->name }}
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            @if(Auth::user()->role === 'admin')
-                                <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}">Trang Quản Trị</a></li>
-                            @else
-                                <li><a class="dropdown-item" href="{{ route('profile.edit') }}">Tài khoản của tôi</a></li>
-                            @endif
+            <div class="collapse navbar-collapse" id="navbarContent">
+                
+                <ul class="navbar-nav me-3 mb-2 mb-lg-0">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle fw-bold text-dark" href="#" data-bs-toggle="dropdown">
+                            <i class="bi bi-grid-fill text-secondary me-1"></i> Danh Mục
+                        </a>
+                        <ul class="dropdown-menu shadow border-0 mt-2">
+                            <li><a class="dropdown-item fw-bold" href="{{ route('home', ['category' => 'all']) }}">Tất cả sách</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <form method="POST" action="{{ route('logout') }}">
-                                    @csrf
-                                    <button class="dropdown-item text-danger" type="submit">Đăng xuất</button>
-                                </form>
-                            </li>
+                            @if(isset($categories))
+                                @foreach($categories as $cat)
+                                    <li>
+                                        <a class="dropdown-item" href="{{ route('home', ['category' => $cat->id]) }}">
+                                            {{ $cat->name }}
+                                        </a>
+                                    </li>
+                                @endforeach
+                            @endif
                         </ul>
+                    </li>
+                </ul>
+
+                <form class="d-flex flex-grow-1 mx-lg-4 my-2 my-lg-0" action="{{ route('home') }}" method="GET">
+                    <div class="input-group">
+                        <input class="form-control border-end-0" type="search" name="keyword" placeholder="Tìm kiếm sách, tác giả..." value="{{ request('keyword') }}">
+                        <button class="btn btn-outline-secondary border-start-0 bg-white text-primary" type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
                     </div>
-                @else
-                    <a href="{{ route('login') }}" class="btn btn-outline-primary">Đăng nhập</a>
-                    <a href="{{ route('register') }}" class="btn btn-primary">Đăng ký</a>
-                @endauth
+                </form>
+
+                <div class="d-flex align-items-center gap-3 mt-3 mt-lg-0">
+                    <a href="{{ route('cart.index') }}" class="btn btn-light position-relative border">
+                        <i class="bi bi-cart3 fs-5"></i>
+                        @if(session('cart'))
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                {{ array_sum(array_column((array) session('cart'), 'quantity')) }}
+                            </span>
+                        @endif
+                    </a>
+
+                    @auth
+                        <div class="dropdown">
+                            <button class="btn btn-primary dropdown-toggle px-3" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle me-1"></i> {{ Auth::user()->name }}
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                                @if(Auth::user()->role === 'admin')
+                                    <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}"><i class="bi bi-speedometer2 me-2"></i>Trang Quản Trị</a></li>
+                                @else
+                                    <li><a class="dropdown-item" href="{{ route('profile.edit') }}"><i class="bi bi-person-gear me-2"></i>Tài khoản của tôi</a></li>
+                                @endif
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form method="POST" action="{{ route('logout') }}">
+                                        @csrf
+                                        <button class="dropdown-item text-danger" type="submit"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    @else
+                        <div class="d-flex gap-2">
+                            <a href="{{ route('login') }}" class="btn btn-outline-primary fw-bold">Đăng nhập</a>
+                            <a href="{{ route('register') }}" class="btn btn-primary fw-bold">Đăng ký</a>
+                        </div>
+                    @endauth
+                </div>
             </div>
         </div>
     </nav>
 
     <div class="hero-banner text-white text-center py-5 mb-5">
-        
         <div class="position-absolute top-0 start-0 w-100 h-100" style="background: rgba(0, 0, 0, 0.6);"></div>
-        
         <div class="container position-relative" style="z-index: 2;">
             <h1 class="display-3 fw-bold mb-3">Thế Giới Sách - BookStore</h1>
             <p class="lead mb-4 fs-4 text-light">Khám phá tri thức - Mở rộng tầm nhìn</p>
@@ -309,8 +338,6 @@
           <div class="modal-footer border-top-0 justify-content-center pb-4">
             <a href="{{ route('login') }}" class="btn btn-primary px-4 me-2">Đăng nhập</a>
             <button type="button" class="btn btn-secondary px-4 me-2" data-bs-dismiss="modal">Để sau</button>
-            
-            
           </div>
         </div>
       </div>
@@ -321,7 +348,6 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             // 1. Kiểm tra trạng thái đăng nhập
-            // Sử dụng cú pháp này để tránh lỗi gạch đỏ trong editor và đảm bảo giá trị true/false chuẩn
             var isLoggedIn = "{{ Auth::check() ? 'true' : 'false' }}" === "true";
             
             // 2. Kiểm tra xem thư viện Bootstrap đã được load chưa
@@ -330,24 +356,21 @@
                 return;
             }
 
-            // 3. Khởi tạo Modal (Thêm kiểm tra phần tử tồn tại để tránh lỗi null)
+            // 3. Khởi tạo Modal
             var modalElement = document.getElementById('authRequestModal');
             if (modalElement) {
                 var authModal = new bootstrap.Modal(modalElement);
 
-                // 4. Lắng nghe sự kiện click
+                // 4. Lắng nghe sự kiện click vào nút cần đăng nhập
                 var buttons = document.querySelectorAll('.require-login');
                 buttons.forEach(function(btn) {
                     btn.addEventListener('click', function(e) {
                         if (!isLoggedIn) {
-                            // Nếu chưa đăng nhập -> Chặn chuyển trang -> Hiện Modal
                             e.preventDefault();
                             authModal.show();
                         }
                     });
                 });
-            } else {
-                console.error('Lỗi: Không tìm thấy Modal có ID "authRequestModal"');
             }
         });
     </script>
