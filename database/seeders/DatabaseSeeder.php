@@ -21,16 +21,5 @@ class DatabaseSeeder extends Seeder
             'role' => 'admin',
         ]);
 
-        // Đã xóa (comment) phần tạo User thường, Danh mục, Sản phẩm và Đơn hàng mẫu
-        /*
-        $user = User::create([
-            'name' => 'Khách Hàng A',
-            'email' => 'khach@gmail.com',
-            'password' => Hash::make('123456'),
-            'role' => 'user',
-        ]);
-
-        // ... (Các phần tạo Category, Product, Order cũ đã được loại bỏ)
-        */
     }
 }
