@@ -45,7 +45,11 @@
                             <i class="bi bi-book me-2"></i> Quản lý Sách
                         </a>
                     </li>
-
+                    <li class="nav-item mb-2">
+                        <a class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">
+                            <i class="bi bi-people me-2"></i> Quản lý Người dùng
+                        </a>
+                    </li>
                     <!-- Link này khớp với route admin.orders.index trong web.php -->
                     <li class="nav-item mb-2">
                         <a class="nav-link {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}" href="{{ route('admin.orders.index') }}">

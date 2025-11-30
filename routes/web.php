@@ -10,6 +10,7 @@ use App\Http\Controllers\Client\HomeController;
 use App\Http\Controllers\Client\CartController;
 use App\Http\Controllers\Client\OrderController as ClientOrderController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\UserController;
 
 // --- ROUTE PUBLIC (KHÁCH HÀNG) ---
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -64,6 +65,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::delete('orders/{order}', [OrderController::class, 'destroy'])->name('orders.destroy');
 
     
+    Route::resource('users', UserController::class)->except(['create', 'store']);
 });
 
 require __DIR__.'/auth.php';
