@@ -171,8 +171,9 @@
             <p class="mb-0 fs-5 text-center">Bạn cần đăng nhập để thực hiện mua sắm.</p>
           </div>
           <div class="modal-footer border-top-0 justify-content-center pb-4">
-            <button type="button" class="btn btn-secondary px-4 me-2" data-bs-dismiss="modal">Để sau</button>
-            <a href="{{ route('login') }}" class="btn btn-primary px-4">Đăng nhập</a>
+          <a href="{{ route('login') }}" class="btn btn-primary px-4">Đăng nhập</a>  
+          <button type="button" class="btn btn-secondary px-4 me-2" data-bs-dismiss="modal">Để sau</button>
+
           </div>
         </div>
       </div>
