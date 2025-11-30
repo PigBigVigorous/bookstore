@@ -40,21 +40,19 @@ class OrderController extends Controller
     // Xóa đơn hàng (nếu cần, thường ít khi xóa đơn hàng thực tế)
     public function destroy(Order $order)
     {
+        // 1. Tắt kiểm tra khóa ngoại TRƯỚC KHI bắt đầu transaction để tránh lỗi ràng buộc
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+
         try {
             DB::beginTransaction();
 
             $deletedId = $order->id; // Lưu lại ID của đơn bị xóa
 
-            // 1. Xóa chi tiết và đơn hàng
+            // 2. Xóa chi tiết và đơn hàng
             $order->details()->delete();
             $order->delete();
 
-            // 2. Cập nhật lại ID cho các đơn hàng phía sau (lấp chỗ trống)
-            
-            // Tắt kiểm tra khóa ngoại tạm thời để sửa ID
-            DB::statement('SET FOREIGN_KEY_CHECKS=0');
-
-            // Lấy các đơn hàng có ID lớn hơn đơn vừa xóa
+            // 3. Cập nhật lại ID cho các đơn hàng phía sau (lấp chỗ trống)
             $ordersToUpdate = Order::where('id', '>', $deletedId)
                                    ->orderBy('id', 'asc')
                                    ->get();
@@ -66,27 +64,33 @@ class OrderController extends Controller
                 // Cập nhật bảng orders
                 DB::table('orders')->where('id', $oldId)->update(['id' => $newId]);
                 
-                // Cập nhật bảng order_details (để giữ liên kết đúng với đơn hàng mới)
+                // Cập nhật bảng order_details
                 DB::table('order_details')->where('order_id', $oldId)->update(['order_id' => $newId]);
             }
 
-            // 3. Reset lại bộ đếm Auto Increment
-            // Lấy ID lớn nhất hiện tại
+            // [QUAN TRỌNG] Commit transaction TẠI ĐÂY (trước khi chạy ALTER TABLE)
+            // Vì ALTER TABLE sẽ tự động commit, nên ta phải chốt dữ liệu trước.
+            DB::commit(); 
+
+            // 4. Reset lại bộ đếm Auto Increment
             $maxId = DB::table('orders')->max('id');
-            // Nếu không có đơn nào thì về 1, ngược lại thì max + 1
             $nextId = $maxId ? $maxId + 1 : 1;
             
+            // Các lệnh này chạy độc lập sau khi transaction đã hoàn tất
             DB::statement("ALTER TABLE orders AUTO_INCREMENT = $nextId");
-            DB::statement("ALTER TABLE order_details AUTO_INCREMENT = 1"); // Reset cả bảng chi tiết cho sạch
+            DB::statement("ALTER TABLE order_details AUTO_INCREMENT = 1");
 
             // Bật lại kiểm tra khóa ngoại
             DB::statement('SET FOREIGN_KEY_CHECKS=1');
 
-            DB::commit();
             return redirect()->route('admin.orders.index')->with('success', 'Đã xóa đơn hàng và cập nhật lại thứ tự mã!');
 
         } catch (\Exception $e) {
-            DB::rollBack();
+            // Kiểm tra xem transaction có đang active không trước khi rollback
+            if(DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+            
             DB::statement('SET FOREIGN_KEY_CHECKS=1'); // Đảm bảo bật lại nếu lỗi
             return redirect()->back()->with('error', 'Lỗi: ' . $e->getMessage());
         }
